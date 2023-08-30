@@ -22,6 +22,7 @@ mid_beje=(229,206,159)
 dark_beje=(212,189,142)
 red_line=(241,118,119)
 cinza_bola=(68,70,81)
+bluey=(133,200,250)
 
 #funções para desenhar
 def desenhar_quadra():
@@ -35,15 +36,41 @@ def desenhar_quadra():
 	
 def desenhar_bola(Px,Py):
 	pygame.draw.circle(tela,cinza_bola, (Px,Py), 9) #(onde, (cor em RGB), (addrX, addrY), raio)
-
+	
+	
+clk = pygame.time.Clock()
 
 while True: # loop principal
+	clk.tick(200)
+	tela.fill(bluey)
 	for event in pygame.event.get(): # fica a espera de eventos
 		if event.type == QUIT:
 			pygame.quit()
 			exit()
+			'''
+		if event.type == KEYDOWN:
+			if event.key == K_d:
+				baddrx = baddrx + 5
+			if event.key == K_a:    # esses eventos não se repetem com o botão continuamente pressionado
+				baddrx = baddrx - 5
+			if event.key == K_s:
+				baddry = baddry + 5
+			if event.key == K_w:
+				baddry = baddry - 5'''   
+				
+	if pygame.key.get_pressed()[K_d]:
+		baddrx = baddrx + 5
+	if pygame.key.get_pressed()[K_a]:
+		baddrx = baddrx - 5
+	if pygame.key.get_pressed()[K_s]:
+		baddry = baddry + 5
+	if pygame.key.get_pressed()[K_w]:
+		baddry = baddry - 5
 	desenhar_quadra()
 	desenhar_bola(baddrx,baddry)
+	
+	#baddrx = baddrx +1
+	#pygame.display.flip()
 	pygame.display.update() # atualiza a tela no loop principal
 	
 
