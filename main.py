@@ -1,16 +1,36 @@
+#!/usr/bin/env python
+
 import pygame #importa a biblioteca
 from pygame.locals import * #puxa todas as funções e constantes da biblioteca
 from sys import exit #puxa a função de fechar janela do sistema
 from random import randint #ajudar na aleatoriedade de colisões
+import os
+
+dir_main = os.path.dirname(__file__)
+dir_imgs = os.path.dirname(dir_main, 'imgs')
+dir_sons = os.path.dirname(dir_main, 'sons')
+
+sprites_bandit = pygame.image.load(os.path.join(dir_imgs,sheet_bandit.png))
+sprites_stripe = pygame.image.load(os.path.join(dir_imgs,sheet_stripe.png))
 
 pygame.init()
 
-class player:
-	def __init__(self, px,py,hit)
+class Player(pygame.sprite.Sprite): # o player vai ter sprites e outras coisas
+	def __init__(self, px,py,hit):
+		pygame.sprite.Sprite.__init__(self)
 		self.px=px
 		self.py=py
 		self.hit=hit
-
+	def mov(self,px,py):
+			if pygame.key.get_pressed()[K_d]:
+				px = px + 5
+			if pygame.key.get_pressed()[K_a]:
+				px = px - 5
+			if pygame.key.get_pressed()[K_s]:
+				py = py + 5
+			if pygame.key.get_pressed()[K_w]:
+				py = py - 5
+		
 
 #constantes ou variaveis
 largura = 900
@@ -25,15 +45,22 @@ ncolisoes = 0
 aux_coli = 0
 
 #musicas e sons
-default_back_song = pygame.mixer.music.load('Sportmanship.mp3')
-pygame.mixer.music.play(-1)
+default_back_song = pygame.mixer.music.load('Sportmanship.mp3') # seleciona musica de background padrão
+pygame.mixer.music.play(-1)# coloca musica em loop
+pygame.mixer.music.set_volume(0.05)
 sons_colisao = [pygame.mixer.Sound('som_bola1.wav'), pygame.mixer.Sound('som_bola2.wav'), pygame.mixer.Sound('som_bola3.wav')]
+for i in range(3):
+	sons_colisao[i].set_volume(0.1)
 som_bola = 0
 
 #variaveis de texto
 fonte = pygame.font.SysFont('Hello Headline Regular',32, True, False)
+fonte2 = pygame.font.SysFont('Hello Headline Regular',40, False, False)
+mensagens = ['Play', 'Quit', 'Change Caracter', 'Multiplayer', 'Yes', 'No', 'Game Over,', ' Press any Key to restart', 'Press ESC to back do Menu Screen']
 
 #Flags do jogo
+menu = True
+
 
 
 tela = pygame.display.set_mode((largura,altura)) #abre tela com formatação de tamanho
@@ -57,6 +84,9 @@ def desenhar_quadra():
 	pygame.draw.line(tela,red_line,(383+100, altura-174),(383+100+192,altura-174), esp_linha)#linha horizontal inferior
 	pygame.draw.line(tela,red_line,(383+100+192-6, altura),(383+100+192-6,altura-174), esp_linha)#linha vertical inferior
 	
+def tela_menu(): 
+	pygame.draw.rect(tela,cinza_bola,(50,25,800,600),3)
+	
 def desenhar_bola(Px,Py):
 	bola = pygame.draw.circle(tela,cinza_bola, (Px,Py), 9) #(onde, (cor em RGB), (addrX, addrY), raio)
 	
@@ -79,6 +109,12 @@ clk = pygame.time.Clock()
 
 
 while True: # loop principal
+	tela.fill(bluey)
+	while menu:
+		#tela.fill(bluey)
+		tela_menu()
+		textoFormatado = fonte.render(mensagens[0], True, (255,255,255) )
+		
 	clk.tick(50)
 	tela.fill(bluey)
 	mensagem = f'Colisões: {ncolisoes}'
@@ -126,6 +162,6 @@ while True: # loop principal
 	tela.blit(textoFormatado, (0,0))
 
 	#pygame.display.flip()
-	pygame.display.update() # atualiza a tela no loop principal
+	pygame.display.flip() # atualiza a tela no loop principal
 	
 
