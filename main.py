@@ -6,31 +6,6 @@ from sys import exit #puxa a função de fechar janela do sistema
 from random import randint #ajudar na aleatoriedade de colisões
 import os
 
-dir_main = os.path.dirname(__file__)
-dir_imgs = os.path.dirname(dir_main, 'imgs')
-dir_sons = os.path.dirname(dir_main, 'sons')
-
-sprites_bandit = pygame.image.load(os.path.join(dir_imgs,sheet_bandit.png))
-sprites_stripe = pygame.image.load(os.path.join(dir_imgs,sheet_stripe.png))
-
-pygame.init()
-
-class Player(pygame.sprite.Sprite): # o player vai ter sprites e outras coisas
-	def __init__(self, px,py,hit):
-		pygame.sprite.Sprite.__init__(self)
-		self.px=px
-		self.py=py
-		self.hit=hit
-	def mov(self,px,py):
-			if pygame.key.get_pressed()[K_d]:
-				px = px + 5
-			if pygame.key.get_pressed()[K_a]:
-				px = px - 5
-			if pygame.key.get_pressed()[K_s]:
-				py = py + 5
-			if pygame.key.get_pressed()[K_w]:
-				py = py - 5
-		
 
 #constantes ou variaveis
 largura = 900
@@ -43,6 +18,11 @@ movX = 5
 movY = 5
 ncolisoes = 0
 aux_coli = 0
+#pastas 
+dir_main = os.path.dirname(__file__)
+dir_imgs = os.path.dirname(dir_main, 'imgs')
+dir_sons = os.path.dirname(dir_main, 'sons')
+
 
 #musicas e sons
 default_back_song = pygame.mixer.music.load('Sportmanship.mp3') # seleciona musica de background padrão
@@ -60,6 +40,40 @@ mensagens = ['Play', 'Quit', 'Change Caracter', 'Multiplayer', 'Yes', 'No', 'Gam
 
 #Flags do jogo
 menu = True
+
+
+sprites_bandit = pygame.image.load(os.path.join(dir_imgs,sheet_bandit.png))
+sprites_stripe = pygame.image.load(os.path.join(dir_imgs,sheet_stripe.png))
+
+pygame.init()
+
+class Player(pygame.sprite.Sprite): # o player vai ter sprites e outras coisas
+	def __init__(self, px,py,passo):
+		pygame.sprite.Sprite.__init__(self)
+		self.px=px
+		self.py=py
+		self.passo=passo
+	def mov(self,px,py,passo):
+			if pygame.key.get_pressed()[K_d]:
+				self.px = self.px + passo
+			if pygame.key.get_pressed()[K_a]:
+				self.px = self.px - passo
+			if pygame.key.get_pressed()[K_s]:
+				self.py = self.py + passo
+			if pygame.key.get_pressed()[K_w]:
+				self.py = self.py - passo
+	def draw_player():
+		
+		
+class Bola():
+	def __init__(self, px,py,vx,vy):
+		self.px=px
+		self.py=py
+		self.vx=vx
+		self.vy=vy
+		bola = pygame.draw.circle(tela,cinza_bola, (Px,Py), 9)
+
+
 
 
 
