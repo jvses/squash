@@ -5,14 +5,12 @@ from pygame.locals import * #puxa todas as funções e constantes da biblioteca
 from sys import exit #puxa a função de fechar janela do sistema
 from random import randint #ajudar na aleatoriedade de colisões
 import os
-
+from button import Button #Importando classe de botões do Youtuber gringo
 
 #pastas 
 dir_main = os.path.dirname(__file__)
 dir_imgs = os.path.join(dir_main, 'imgs')
 dir_sons = os.path.join(dir_main, 'sons')
-
-
 
 
 #constantes ou variaveis
@@ -36,6 +34,7 @@ dark_beje=(212,189,142)
 red_line=(241,118,119)
 cinza_bola=(68,70,81)
 bluey=(133,200,250)
+branco=(255,255,255)
 
 pg.init() # muitas funções de som, imagem e etc precisam dessa tela inicializada para serem feitas
 tela = pg.display.set_mode((largura,altura)) #abre tela com formatação de tamanho
@@ -72,12 +71,28 @@ class Player(pg.sprite.Sprite):
 
 # a estratégia para os menus é colocar cada menu numa função cada um com seu proprio loop
 
-def menu_principal():
-	fonte = pg.font.SysFont('Hello Headline Regular',32, True, False)
+def get_font(size): # função auxiliar para mudar tamanho dos textos A fonte está padronizada
+    return pg.font.SysFont('Hello Headline Regular',size, True, False)
+
 
 def star_play():
 
-def menu_config():
+def menu_conf():
+
+def menu_principal():
+	#fonte = pg.font.SysFont('Hello Headline Regular',32, True, False)
+	pg.display.set_caption('Bluey Squash Game - Menu') # atualiza o nome da janela
+	
+	while True:
+		tela.fill(bluey) # pinta tela de azul
+		
+		menu_mouse = pg.mouse.get_pos()
+		texto_menu=get_font(64).render("Menu Principal", True,branco)
+		ret_menu = texto_menu.get_rect(center=(largura/2,70))
+		tela.blit(texto_menu,ret_menu) # até aqui ele printa o titulo do menu na tela
+		
+		
+
 
 
 
