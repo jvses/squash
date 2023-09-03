@@ -34,6 +34,7 @@ dark_beje=(212,189,142)
 red_line=(241,118,119)
 cinza_bola=(68,70,81)
 bluey=(133,200,250)
+bluey_dark=(32,30,67)
 branco=(255,255,255)
 
 pg.init() # muitas funções de som, imagem e etc precisam dessa tela inicializada para serem feitas
@@ -72,12 +73,16 @@ class Player(pg.sprite.Sprite):
 # a estratégia para os menus é colocar cada menu numa função cada um com seu proprio loop
 
 def get_font(size): # função auxiliar para mudar tamanho dos textos A fonte está padronizada
-    return pg.font.SysFont('Hello Headline Regular',size, True, False)
+    return pg.font.Font(os.path.join(dir_main,'Hello_Headline_Regular.ttf'),size)
 
 
 def star_play():
+	print("Bora jogar !!!")
+	menu_principal()
 
 def menu_conf():
+	print("Bora configurar !!!")
+	menu_principal()
 
 def menu_principal():
 	#fonte = pg.font.SysFont('Hello Headline Regular',32, True, False)
@@ -86,17 +91,42 @@ def menu_principal():
 	while True:
 		tela.fill(bluey) # pinta tela de azul
 		
-		menu_mouse = pg.mouse.get_pos()
-		texto_menu=get_font(64).render("Menu Principal", True,branco)
+		menu_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
+		texto_menu=get_font(64).render("Menu Principal", False,branco)
 		ret_menu = texto_menu.get_rect(center=(largura/2,70))
+		
+		bot_play = Button(image = None, pos=(largura/2, 300),text_input="Play", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
+		bot_conf = Button(image = None, pos=(largura/2, 350),text_input="Config", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
+		bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
+		
 		tela.blit(texto_menu,ret_menu) # até aqui ele printa o titulo do menu na tela
 		
+		for butao in [bot_play,bot_conf,bot_quit]:
+			butao.changeColor(menu_mouse)
+			butao.update(tela)
 		
+		for event in pg.event.get():
+			if event.type == pg.QUIT:
+				pg.quit()
+				exit()
+			if event.type == pg.MOUSEBUTTONDOWN:
+				if bot_play.checkForInput(menu_mouse):
+					star_play()
+				if bot_conf.checkForInput(menu_mouse):
+					menu_conf()
+				if bot_quit.checkForInput(menu_mouse):
+					pg.quit()
+					exit()
+				
+				
+		pg.display.flip()
 
 
 
+menu_principal()
 
 
+'''
 clk = pg.time.Clock()
 
 while True:
@@ -118,6 +148,5 @@ while True:
 
 	#pygame.display.flip()
 	pg.display.flip() # atualiza a tela no loop principal
-
-
+'''
 
