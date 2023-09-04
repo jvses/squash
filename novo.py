@@ -61,21 +61,29 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.px = Px
 		self.py = Py
 		self.vel = Vel
+		self.animacao = False
 		pg.sprite.Sprite.__init__(self)
 		self.imagens_player = []  # lista de frames, vetor ainda vazio
 		for i in range(4): # loop para colocar frames no vetor
 			img = img_sheet.subsurface((i*43,0),(43,47)) # ((ponto para o corte),(dimensões de cada frame))
 			self.imagens_player.append(img) 
 		self.index_frame = 0 # var de controle dos frames
-		self.image = self.imagens_player[self.index_frame] # sprite padrão exibida no self.image
+		self.image = self.imagens_player[int(self.index_frame)] # sprite padrão exibida no self.image
 		self.image = pg.transform.scale(self.image,(43*scale, 47*scale))
 		self.rect = self.image.get_rect() # pega o retângulo que a imagem ocupa
 		self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
+		pg.draw.circle(tela,bluey_dark,(self.px,self.py),47, 5)
+		
 	def update_frame(self): # deve passar quando ele bater na bola
-		if self.index_frame > 4 :
-			self.index_frame = 0 
-		self.index_frame += 0.25
-		self.image = self.imagens_player[int(self.index_frame)]
+		if self.animacao == True:
+			self.index_frame += 1
+			if self.index_frame >= len(self.imagens_player) :
+				self.index_frame = 0 
+				self.animacao = False
+			self.image = self.imagens_player[int(self.index_frame)]
+			self.image = pg.transform.scale(self.image,(43*scale, 47*scale))
+			self.rect = self.image.get_rect() # pega o retângulo que a imagem ocupa
+			self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
 	def mov(self): # vai ser ativado quando ele andar
 		if pg.key.get_pressed()[K_d]:
 			self.px += self.vel
@@ -85,8 +93,12 @@ class Player(pg.sprite.Sprite): # classe de jogador
 			self.py += self.vel
 		if pg.key.get_pressed()[K_w]:
 			self.py -= self.vel
+		#if pg.key.get_pressed()[K_SPACE]:
+			#self.update_frame()
 		self.rect.center = (self.px,self.py)
-		
+	def bater_animacao(self):
+					self.animacao = True
+					
 		
 		
 		
@@ -117,11 +129,11 @@ class Bola():
 				self.vx = Vel_min
 			if self.vy < 0: # se o vx é negativa ele diminui o modulo em 2
 				self.vy += 2
-				if abs(self.vy) < 2: # se o modulo for menor que 2 ele mantem e -2
+				if abs(self.vy) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vy = -Vel_min
 			else: # se for positivo ele tira 2
 				self.vy -= 2
-				if abs(self.vy) < 2:# se modulo menor que 2 ele mantêm em 2
+				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 
 
@@ -133,11 +145,11 @@ class Bola():
 				self.vx = -Vel_min
 			if self.vy < 0: # se o vx é negativa ele diminui o modulo em 2
 				self.vy += 2
-				if abs(self.vy) < 2: # se o modulo for menor que 2 ele mantem e -2
+				if abs(self.vy) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vy = -Vel_min
 			else: # se for positivo ele tira 2
 				self.vy -= 2
-				if abs(self.vy) < 2:# se modulo menor que 2 ele mantêm em 2
+				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 			
 		if self.py <= (altura-quadra_altura + raio_bola): #bateu no teto
@@ -148,11 +160,11 @@ class Bola():
 				self.vy = Vel_min
 			if self.vx < 0: # se o vx é negativa ele diminui o modulo em 2
 				self.vx += 2
-				if abs(self.vx) < 2: # se o modulo for menor que 2 ele mantem e -2
+				if abs(self.vx) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vx = -Vel_min
 			else: # se for positivo ele tira 2
 				self.vx -= 2
-				if abs(self.vx) < 2:# se modulo menor que 2 ele mantêm em 2
+				if abs(self.vx) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 			
 		if self.py >= altura - raio_bola :# bateu no chão
@@ -164,11 +176,11 @@ class Bola():
 				
 			if self.vx < 0: # se o vx é negativa ele diminui o modulo em 2
 				self.vx += 2
-				if abs(self.vx) < 2: # se o modulo for menor que 2 ele mantem e -2
+				if abs(self.vx) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vx = -Vel_min
 			else: # se for positivo ele tira 2
 				self.vx -= 2
-				if abs(self.vx) < 2:# se modulo menor que 2 ele mantêm em 2
+				if abs(self.vx) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 #desenhar a quadra
 def desenhar_quadra():
@@ -202,7 +214,7 @@ def star_play():
 		clk.tick(clocke)
 		desenhar_quadra()
 		bola.draw()
-		print(bola.vx,bola.vy,bola.px,bola.py)
+		#print(bola.vx,bola.vy,bola.px,bola.py)
 		bola.update()
 		bola.colisao_bola()
 		
@@ -210,15 +222,17 @@ def star_play():
 		todas_as_sprites.draw(tela) #desenha todas as sprites armazenadas na Tela
 		
 		player1.mov()
-		
+		#player1.bater_bola()
+		player1.update_frame()
 		todas_as_sprites.update()
 		
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
 				pg.quit()
 				exit()
-			
-		
+			if event.type == KEYDOWN:
+				if event.key == K_SPACE:
+					player1.bater_animacao()
 		pg.display.flip()
 
 def menu_conf():
