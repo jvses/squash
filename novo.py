@@ -2,6 +2,8 @@
 
 import pygame as pg#importa a biblioteca
 from pygame.locals import * #puxa todas as funções e constantes da biblioteca
+import math
+#import pygame.gfxdraw # teste para novos desenhos
 from sys import exit #puxa a função de fechar janela do sistema
 from random import randint #ajudar na aleatoriedade de colisões
 import os
@@ -27,7 +29,7 @@ vY = 5
 scale=3
 quadra_largura=largura
 quadra_altura=592
-clocke=30
+clocke=10
 
 #cores
 light_beje = (243,223,171)
@@ -63,6 +65,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.vel = Vel
 		self.animacao = False
 		pg.sprite.Sprite.__init__(self)
+		self.circle_size = 47*(scale-1)
 		self.imagens_player = []  # lista de frames, vetor ainda vazio
 		for i in range(4): # loop para colocar frames no vetor
 			img = img_sheet.subsurface((i*43,0),(43,47)) # ((ponto para o corte),(dimensões de cada frame))
@@ -72,8 +75,9 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.image = pg.transform.scale(self.image,(43*scale, 47*scale))
 		self.rect = self.image.get_rect() # pega o retângulo que a imagem ocupa
 		self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
-		pg.draw.circle(tela,bluey_dark,(self.px,self.py),47, 5)
-		
+		self.area_batida = pg.draw.circle(tela,bluey_dark,(self.px,self.py),self.circle_size, 5)
+	def draw_area_bater(self):
+		pg.draw.circle(tela,bluey_dark,(self.px,self.py),self.circle_size, 5)
 	def update_frame(self): # deve passar quando ele bater na bola
 		if self.animacao == True:
 			self.index_frame += 1
@@ -84,7 +88,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 			self.image = pg.transform.scale(self.image,(43*scale, 47*scale))
 			self.rect = self.image.get_rect() # pega o retângulo que a imagem ocupa
 			self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
-	def mov(self): # vai ser ativado quando ele andar
+	def mov(self): # vai ser ativado quando ele andar Com limitações das bordas da quadra
 		if pg.key.get_pressed()[K_d]:
 			self.px += self.vel
 		if pg.key.get_pressed()[K_a]:
@@ -93,33 +97,33 @@ class Player(pg.sprite.Sprite): # classe de jogador
 			self.py += self.vel
 		if pg.key.get_pressed()[K_w]:
 			self.py -= self.vel
+		self.draw_area_bater()
 		#if pg.key.get_pressed()[K_SPACE]:
 			#self.update_frame()
 		self.rect.center = (self.px,self.py)
 	def bater_animacao(self):
 					self.animacao = True
-					
 		
 		
-		
-class Bola():
+class Bola(): 
 	def __init__(self,pos,speed,raio):
 		self.px = pos[0]
 		self.py = pos[1]
 		self.vx = speed[0]
 		self.vy = speed[1]
 		self.size = raio
+		#self.ball = pg.draw.circle(tela,cinza_bola,(self.px,self.py),self.size )
 	def draw(self):
-		pg.draw.circle(tela,cinza_bola,(self.px,self.py),self.size )
-	def update(self):
+		self.ball = pg.draw.circle(tela,cinza_bola,(self.px,self.py),self.size )
+	def update(self): # atualiza a posiçãod a bola
 		self.px += int(self.vx)
 		self.py += int(self.vy)
-	def newSpeed(self,speed):
-		self.vx = speed[0]
+	def newSpeed(self,speed): # quero usar para mudar a velocidade quando bater num jogador
+		self.vx = speed[0]#deletar depois e reescrever, ou não, sei lá
 		self.vy = speed[1]
-	def newPos(self):
-		self.px += self.vx 
-		self.py += self.vy
+	def newPos(self): # quero usar pra acompanhar o jogador antes do saque
+			self.px += self.vx #deletar depois e reescrever
+			self.py += self.vy
 	def colisao_bola(self):
 		if self.px <= raio_bola: # bateu na esquerda Vx é - -> +
 			self.px = raio_bola+1
@@ -135,8 +139,6 @@ class Bola():
 				self.vy -= 2
 				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
-
-
 		if self.px >= (quadra_largura - raio_bola): # bateu na direita
 			self.px = (quadra_largura - raio_bola)+1
 			self.vx -= 2
@@ -151,7 +153,6 @@ class Bola():
 				self.vy -= 2
 				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
-			
 		if self.py <= (altura-quadra_altura + raio_bola): #bateu no teto
 			self.py = (altura-quadra_altura + raio_bola) +1
 			self.vy += 2
@@ -166,7 +167,6 @@ class Bola():
 				self.vx -= 2
 				if abs(self.vx) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
-			
 		if self.py >= altura - raio_bola :# bateu no chão
 			self.py = (altura - raio_bola) +1
 			self.vy -= 2
@@ -192,6 +192,16 @@ def desenhar_quadra():
 	pg.draw.line(tela,red_line,(383, altura-174),(383+192,altura-174), esp_linha)#linha horizontal inferior
 	pg.draw.line(tela,red_line,(383+192-6, altura),(383+192-6,altura-174), esp_linha)#linha vertical inferior
 
+# para se fazer colisões de circulos eu vou ter que fazer uma função própria
+# já que o pygame só reconhece colisões com base em retângulos e todo desenho ele encaixa em um retângulo
+
+def circle_colision(ponto1,raio1,ponto2,raio2): # função para checar colisões entre círculos
+	if math.sqrt( pow(ponto1[0] - ponto2[0], 2) + pow(ponto1[1] - ponto2[1], 2) ) < (raio1+raio2):
+		return True
+	else:
+		return False
+
+
 # a estratégia para os menus é colocar cada menu numa função cada um com seu proprio loop
 
 def get_font(size): # função auxiliar para mudar tamanho dos textos A fonte está padronizada
@@ -199,11 +209,12 @@ def get_font(size): # função auxiliar para mudar tamanho dos textos A fonte es
 
 
 def star_play():
-	pg.display.set_caption('Bluey Squash Game - Started') # atualiza o nome da janela
+	pg.display.set_caption('Bluey Squash Game - Playing') # atualiza o nome da janela
 	clk = pg.time.Clock()
 	
-	bola = Bola((383,altura-(592/2)),(Vel_max,Vel_max),raio_bola)
-	
+	bola = Bola((383,altura-(592/2)),(-Vel_max,-Vel_max),raio_bola)
+	bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
+	bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
 #para as sprites funcionarem vc precisa adicionar elas
 	todas_as_sprites = pg.sprite.Group()
 	player1 = Player(sprite_bandit,500,400,Vel_max)
@@ -211,18 +222,25 @@ def star_play():
 	
 	while True:
 		tela.fill(bluey) # pinta tela de azul
-		clk.tick(clocke)
+		clk.tick(3)
 		desenhar_quadra()
 		bola.draw()
+		bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
+		#bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
+		if circle_colision((200,200),50,(bola.px,bola.py),bola.size ):
+			print("bola está na área de acerto")
+		else:
+			print("não bateu ainda")
 		#print(bola.vx,bola.vy,bola.px,bola.py)
 		bola.update()
 		bola.colisao_bola()
-		
+		#if bola.ball.pg.collide_circle(player1.area_batida):
+		#	print("bola está na área de acerto")
 		
 		todas_as_sprites.draw(tela) #desenha todas as sprites armazenadas na Tela
 		
 		player1.mov()
-		#player1.bater_bola()
+		#player1.draw_area_bater()
 		player1.update_frame()
 		todas_as_sprites.update()
 		
