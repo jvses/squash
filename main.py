@@ -14,7 +14,6 @@ dir_main = os.path.dirname(__file__)
 dir_imgs = os.path.join(dir_main, 'imgs')
 dir_sons = os.path.join(dir_main, 'sons')
 
-
 #constantes ou variaveis
 largura = 800
 altura = 650
@@ -29,7 +28,7 @@ vY = 5
 scale=4
 quadra_largura=largura
 quadra_altura=592
-clocke=10
+clocke=30
 
 #cores
 light_beje = (243,223,171)
@@ -72,7 +71,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.limiteY_def = defasagem_quadraY
 		self.animacao = False
 		pg.sprite.Sprite.__init__(self)
-		self.circle_size = 47*(scale-2)
+		self.circle_size = int(47*(scale-1.8))
 		self.imagens_player = []  # lista de frames, vetor ainda vazio
 		for i in range(4): # loop para colocar frames no vetor
 			img = img_sheet.subsurface((i*43,0),(43,47)) # ((ponto para o corte),(dimensões de cada frame))
@@ -233,6 +232,8 @@ def star_play():
 	todas_as_sprites.add(player1)
 	todas_as_sprites.add(player2)
 	
+	player_da_vez = player1 # variavel que marca player que inicia o jogo
+	
 	while True:
 		tela.fill(bluey) # pinta tela de azul
 		clk.tick(clocke)
@@ -240,10 +241,10 @@ def star_play():
 		bola.draw()
 		#bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
 		#bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
-		'''if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
+		if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
 			print("bola está na área de acerto")
 		else:
-			print("não bateu ainda")'''
+			print("não bateu ainda")
 		#print(bola.vx,bola.vy,bola.px,bola.py)
 		bola.update()
 		bola.colisao_bola()
@@ -265,9 +266,13 @@ def star_play():
 				exit()
 			if event.type == KEYDOWN:
 				if event.key == K_c:
-					player1.bater_animacao()
+					player1.bater_animacao() #só vai checar a colisão se o jogador apertar o botão, se não a bola passa por ele
+					if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
+						bola.newSpeed((-Vel_max,-Vel_max))
 				if event.key == K_n:
 					player2.bater_animacao()
+					if circle_colision((bola.px,bola.py),bola.size,(player2.px,player2.py),player2.circle_size ):
+						bola.newSpeed((-Vel_max,-Vel_max))
 		pg.display.flip()
 
 def menu_conf():
