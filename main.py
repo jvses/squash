@@ -21,11 +21,13 @@ esp_linha = 12
 raio_bola=9
 bolaX_start=largura/2
 bolaY_start=altura/2
-Vel_max=20
+Vel_max=23
+Vel_Padrao = 29
 Vel_min=3
 vX = 5
 vY = 5
 scale=4
+v_atrito=1
 quadra_largura=largura
 quadra_altura=592
 clocke=30
@@ -58,7 +60,7 @@ sprite_bandit = pg.image.load(os.path.join(dir_imgs,'sheet_bandit.png')).convert
 sprite_stripe = pg.image.load(os.path.join(dir_imgs,'sheet_stripe.png')).convert_alpha()
 
 class Player(pg.sprite.Sprite): # classe de jogador
-	def __init__(self,img_sheet,Px,Py,Vel,Kup,Kdown,Kleft,Kright,quadraX,quadraY,defasagem_quadraY):
+	def __init__(self,img_sheet,Px,Py,Vel,Kup,Kdown,Kleft,Kright,quadraX,quadraY,defasagem_quadraY,auxArea):
 		self.px = Px
 		self.py = Py
 		self.vel = Vel
@@ -70,6 +72,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.limiteY = quadraY
 		self.limiteY_def = defasagem_quadraY
 		self.animacao = False
+		self.aux_area = auxArea
 		pg.sprite.Sprite.__init__(self)
 		self.circle_size = int(47*(scale-1.8))
 		self.imagens_player = []  # lista de frames, vetor ainda vazio
@@ -128,68 +131,68 @@ class Bola():
 	def update(self): # atualiza a posiçãod a bola
 		self.px += int(self.vx)
 		self.py += int(self.vy)
-	def newSpeed(self,speed): # quero usar para mudar a velocidade quando bater num jogador
-		self.vx = speed[0]#deletar depois e reescrever, ou não, sei lá
-		self.vy = speed[1]
+	def newSpeed(self,speed,theta): # quero usar para mudar a velocidade quando bater num jogador
+		self.vx = -speed*math.cos(theta)#deletar depois e reescrever, ou não, sei lá
+		self.vy = -speed*math.sin(theta)
 	def newPos(self): # quero usar pra acompanhar o jogador antes do saque
 			self.px += self.vx #deletar depois e reescrever
 			self.py += self.vy
 	def colisao_bola(self):
 		if self.px <= raio_bola: # bateu na esquerda Vx é - -> +
 			self.px = raio_bola+1
-			self.vx += 2
+			self.vx += v_atrito
 			self.vx = -self.vx
 			if abs(self.vx) < Vel_min :
 				self.vx = Vel_min
 			if self.vy < 0: # se o vx é negativa ele diminui o modulo em 2
-				self.vy += 2
+				self.vy += v_atrito
 				if abs(self.vy) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vy = -Vel_min
 			else: # se for positivo ele tira 2
-				self.vy -= 2
+				self.vy -= v_atrito
 				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 		if self.px >= (quadra_largura - raio_bola): # bateu na direita
 			self.px = (quadra_largura - raio_bola)+1
-			self.vx -= 2
+			self.vx -= v_atrito
 			self.vx = -self.vx
 			if abs(self.vx) < Vel_min :
 				self.vx = -Vel_min
 			if self.vy < 0: # se o vx é negativa ele diminui o modulo em 2
-				self.vy += 2
+				self.vy += v_atrito
 				if abs(self.vy) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vy = -Vel_min
 			else: # se for positivo ele tira 2
-				self.vy -= 2
+				self.vy -= v_atrito
 				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 		if self.py <= (altura-quadra_altura + raio_bola): #bateu no teto
 			self.py = (altura-quadra_altura + raio_bola) +1
-			self.vy += 2
+			self.vy += v_atrito
 			self.vy = -self.vy
 			if abs(self.vy) < Vel_min :
 				self.vy = Vel_min
 			if self.vx < 0: # se o vx é negativa ele diminui o modulo em 2
-				self.vx += 2
+				self.vx += v_atrito
 				if abs(self.vx) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vx = -Vel_min
 			else: # se for positivo ele tira 2
-				self.vx -= 2
+				self.vx -= v_atrito
 				if abs(self.vx) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 		if self.py >= altura - raio_bola :# bateu no chão
 			self.py = (altura - raio_bola) +1
-			self.vy -= 2
+			self.vy -= v_atrito
 			self.vy = -self.vy
 			if abs(self.vy) < Vel_min :
 				self.vy = -Vel_min
 				
 			if self.vx < 0: # se o vx é negativa ele diminui o modulo em 2
-				self.vx += 2
+				self.vx += v_atrito
 				if abs(self.vx) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
 					self.vx = -Vel_min
 			else: # se for positivo ele tira 2
-				self.vx -= 2
+				self.vx -= v_atrito
 				if abs(self.vx) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 #desenhar a quadra
@@ -201,6 +204,9 @@ def desenhar_quadra():
 	pg.draw.line(tela,red_line,(383+192-6, 58),(383+192-6,58+174), esp_linha)#linha vertical sup
 	pg.draw.line(tela,red_line,(383, altura-174),(383+192,altura-174), esp_linha)#linha horizontal inferior
 	pg.draw.line(tela,red_line,(383+192-6, altura),(383+192-6,altura-174), esp_linha)#linha vertical inferior
+	
+	# linhas auxiliares
+	pg.draw.line(tela,branco,(largura-43,altura-quadra_altura),(largura-43,altura),4)
 
 # para se fazer colisões de circulos eu vou ter que fazer uma função própria
 # já que o pygame só reconhece colisões com base em retângulos e todo desenho ele encaixa em um retângulo
@@ -211,6 +217,21 @@ def circle_colision(ponto1,raio1,ponto2,raio2): # função para checar colisões
 	else:
 		return False
 
+def get_angle(ponto1,ponto2):
+	dx = ponto1[0]-ponto2[0]
+	dy = ponto1[1]-ponto2[1]
+	if dx == 0:
+		dx = 0.001
+	# para evitar quicar demais no eixo Y eu vou limitar o angulo para no máximo 60º
+	teta = math.atan(dy/dx)*180/math.pi
+	if teta < -60:
+		teta = -60*math.pi/180
+	elif teta > 60:
+		teta = 60*math.pi/180
+	else:
+		teta = math.atan(dy/dx)
+	return teta
+	
 
 # a estratégia para os menus é colocar cada menu numa função cada um com seu proprio loop
 
@@ -241,10 +262,10 @@ def star_play():
 		bola.draw()
 		#bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
 		#bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
-		if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
+		'''if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
 			print("bola está na área de acerto")
 		else:
-			print("não bateu ainda")
+			print("não bateu ainda")'''
 		#print(bola.vx,bola.vy,bola.px,bola.py)
 		bola.update()
 		bola.colisao_bola()
@@ -267,12 +288,14 @@ def star_play():
 			if event.type == KEYDOWN:
 				if event.key == K_c:
 					player1.bater_animacao() #só vai checar a colisão se o jogador apertar o botão, se não a bola passa por ele
-					if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
-						bola.newSpeed((-Vel_max,-Vel_max))
+					if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size):
+						teta = get_angle((bola.px,bola.py),(player1.px,player1.py))
+						bola.newSpeed(Vel_Padrao,teta)
 				if event.key == K_n:
 					player2.bater_animacao()
 					if circle_colision((bola.px,bola.py),bola.size,(player2.px,player2.py),player2.circle_size ):
-						bola.newSpeed((-Vel_max,-Vel_max))
+						teta = get_angle((bola.px,bola.py),(player2.px,player2.py))
+						bola.newSpeed(Vel_Padrao,teta)
 		pg.display.flip()
 
 def menu_conf():
