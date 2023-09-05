@@ -59,7 +59,7 @@ sprite_bandit = pg.image.load(os.path.join(dir_imgs,'sheet_bandit.png')).convert
 sprite_stripe = pg.image.load(os.path.join(dir_imgs,'sheet_stripe.png')).convert_alpha()
 
 class Player(pg.sprite.Sprite): # classe de jogador
-	def __init__(self,img_sheet,Px,Py,Vel,Kup,Kdown,Kleft,Kright):
+	def __init__(self,img_sheet,Px,Py,Vel,Kup,Kdown,Kleft,Kright,quadraX,quadraY,defasagem_quadraY):
 		self.px = Px
 		self.py = Py
 		self.vel = Vel
@@ -67,6 +67,9 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.kd= Kdown
 		self.kl = Kleft
 		self.kr = Kright
+		self.limiteX = quadraX
+		self.limiteY = quadraY
+		self.limiteY_def = defasagem_quadraY
 		self.animacao = False
 		pg.sprite.Sprite.__init__(self)
 		self.circle_size = 47*(scale-2)
@@ -94,13 +97,17 @@ class Player(pg.sprite.Sprite): # classe de jogador
 			self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
 	def mov(self): # vai ser ativado quando ele andar Com limitações das bordas da quadra
 		if pg.key.get_pressed()[self.kr]:
-			self.px += self.vel
+			if self.px < self.limiteX - self.circle_size:
+				self.px += self.vel
 		if pg.key.get_pressed()[self.kl]:
-			self.px -= self.vel
+			if self.px > self.circle_size:
+				self.px -= self.vel
 		if pg.key.get_pressed()[self.kd]:
-			self.py += self.vel
+			if self.py < self.limiteY - self.circle_size:
+				self.py += self.vel
 		if pg.key.get_pressed()[self.ku]:
-			self.py -= self.vel
+			if self.py > (self.limiteY_def+self.circle_size):
+				self.py -= self.vel
 		self.draw_area_bater()
 		#if pg.key.get_pressed()[K_SPACE]:
 			#self.update_frame()
@@ -221,8 +228,8 @@ def star_play():
 	bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
 #para as sprites funcionarem vc precisa adicionar elas
 	todas_as_sprites = pg.sprite.Group()
-	player1 = Player(sprite_bandit,600,450,Vel_max,K_w,K_s,K_a,K_d)# up down left rigth
-	player2 = Player(sprite_stripe,600,300,Vel_max,K_i,K_k,K_j,K_l)
+	player1 = Player(sprite_bandit,600,450,Vel_max,K_w,K_s,K_a,K_d,largura,altura,altura-quadra_altura)# up down left rigth
+	player2 = Player(sprite_stripe,600,300,Vel_max,K_i,K_k,K_j,K_l,largura,altura,altura-quadra_altura)
 	todas_as_sprites.add(player1)
 	todas_as_sprites.add(player2)
 	
@@ -231,7 +238,7 @@ def star_play():
 		clk.tick(clocke)
 		desenhar_quadra()
 		bola.draw()
-		bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
+		#bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
 		#bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
 		'''if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
 			print("bola está na área de acerto")
