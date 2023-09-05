@@ -26,7 +26,7 @@ Vel_max=20
 Vel_min=3
 vX = 5
 vY = 5
-scale=3
+scale=4
 quadra_largura=largura
 quadra_altura=592
 clocke=10
@@ -59,13 +59,17 @@ sprite_bandit = pg.image.load(os.path.join(dir_imgs,'sheet_bandit.png')).convert
 sprite_stripe = pg.image.load(os.path.join(dir_imgs,'sheet_stripe.png')).convert_alpha()
 
 class Player(pg.sprite.Sprite): # classe de jogador
-	def __init__(self,img_sheet,Px,Py,Vel):
+	def __init__(self,img_sheet,Px,Py,Vel,Kup,Kdown,Kleft,Kright):
 		self.px = Px
 		self.py = Py
 		self.vel = Vel
+		self.ku = Kup
+		self.kd= Kdown
+		self.kl = Kleft
+		self.kr = Kright
 		self.animacao = False
 		pg.sprite.Sprite.__init__(self)
-		self.circle_size = 47*(scale-1)
+		self.circle_size = 47*(scale-2)
 		self.imagens_player = []  # lista de frames, vetor ainda vazio
 		for i in range(4): # loop para colocar frames no vetor
 			img = img_sheet.subsurface((i*43,0),(43,47)) # ((ponto para o corte),(dimensões de cada frame))
@@ -89,13 +93,13 @@ class Player(pg.sprite.Sprite): # classe de jogador
 			self.rect = self.image.get_rect() # pega o retângulo que a imagem ocupa
 			self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
 	def mov(self): # vai ser ativado quando ele andar Com limitações das bordas da quadra
-		if pg.key.get_pressed()[K_d]:
+		if pg.key.get_pressed()[self.kr]:
 			self.px += self.vel
-		if pg.key.get_pressed()[K_a]:
+		if pg.key.get_pressed()[self.kl]:
 			self.px -= self.vel
-		if pg.key.get_pressed()[K_s]:
+		if pg.key.get_pressed()[self.kd]:
 			self.py += self.vel
-		if pg.key.get_pressed()[K_w]:
+		if pg.key.get_pressed()[self.ku]:
 			self.py -= self.vel
 		self.draw_area_bater()
 		#if pg.key.get_pressed()[K_SPACE]:
@@ -217,20 +221,22 @@ def star_play():
 	bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
 #para as sprites funcionarem vc precisa adicionar elas
 	todas_as_sprites = pg.sprite.Group()
-	player1 = Player(sprite_bandit,500,400,Vel_max)
+	player1 = Player(sprite_bandit,600,450,Vel_max,K_w,K_s,K_a,K_d)# up down left rigth
+	player2 = Player(sprite_stripe,600,300,Vel_max,K_i,K_k,K_j,K_l)
 	todas_as_sprites.add(player1)
+	todas_as_sprites.add(player2)
 	
 	while True:
 		tela.fill(bluey) # pinta tela de azul
-		clk.tick(3)
+		clk.tick(clocke)
 		desenhar_quadra()
 		bola.draw()
 		bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
 		#bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
-		if circle_colision((200,200),50,(bola.px,bola.py),bola.size ):
+		'''if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
 			print("bola está na área de acerto")
 		else:
-			print("não bateu ainda")
+			print("não bateu ainda")'''
 		#print(bola.vx,bola.vy,bola.px,bola.py)
 		bola.update()
 		bola.colisao_bola()
@@ -240,8 +246,10 @@ def star_play():
 		todas_as_sprites.draw(tela) #desenha todas as sprites armazenadas na Tela
 		
 		player1.mov()
+		player2.mov()
 		#player1.draw_area_bater()
 		player1.update_frame()
+		player2.update_frame()
 		todas_as_sprites.update()
 		
 		for event in pg.event.get():
@@ -249,8 +257,10 @@ def star_play():
 				pg.quit()
 				exit()
 			if event.type == KEYDOWN:
-				if event.key == K_SPACE:
+				if event.key == K_c:
 					player1.bater_animacao()
+				if event.key == K_n:
+					player2.bater_animacao()
 		pg.display.flip()
 
 def menu_conf():
