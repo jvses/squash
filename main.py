@@ -22,15 +22,18 @@ raio_bola=9
 bolaX_start=largura/2
 bolaY_start=altura/2
 Vel_max=23
-Vel_Padrao = 29
+Vel_Padrao = 20
+Vel_passo = 10
 Vel_min=3
 vX = 5
 vY = 5
 scale=4
-v_atrito=1
+v_atrito=2
 quadra_largura=largura
 quadra_altura=592
-clocke=30
+default_pos1=(600,255)
+default_pos2=(600,453)
+clocke=60
 
 #cores
 light_beje = (243,223,171)
@@ -55,14 +58,20 @@ sons_colisao = [pg.mixer.Sound(os.path.join(dir_sons,'som_bola1.wav')), pg.mixer
 #	sons_colisao[i].set_volume(0.1)
 som_bola = 0
 
+#Flags de configuração
+hit_area_visible = True
+
 #sprites e frames
 sprite_bandit = pg.image.load(os.path.join(dir_imgs,'sheet_bandit.png')).convert_alpha()
 sprite_stripe = pg.image.load(os.path.join(dir_imgs,'sheet_stripe.png')).convert_alpha()
+#preparando sistema de skins
+sprite_p1 = sprite_bandit #skin p1 recebe o bandit por padrão
+sprite_p2 = sprite_stripe #skin p2 recebe o stripe por padrão
 
 class Player(pg.sprite.Sprite): # classe de jogador
-	def __init__(self,img_sheet,Px,Py,Vel,Kup,Kdown,Kleft,Kright,quadraX,quadraY,defasagem_quadraY,auxArea):
-		self.px = Px
-		self.py = Py
+	def __init__(self,img_sheet,Pos,Vel,Kup,Kdown,Kleft,Kright,quadraX,quadraY,defasagem_quadraY,auxAreaFlag):
+		self.px = Pos[0]
+		self.py = Pos[1]
 		self.vel = Vel
 		self.ku = Kup
 		self.kd= Kdown
@@ -72,7 +81,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.limiteY = quadraY
 		self.limiteY_def = defasagem_quadraY
 		self.animacao = False
-		self.aux_area = auxArea
+		self.aux_area_flag = auxAreaFlag
 		pg.sprite.Sprite.__init__(self)
 		self.circle_size = int(47*(scale-1.8))
 		self.imagens_player = []  # lista de frames, vetor ainda vazio
@@ -84,12 +93,13 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		self.image = pg.transform.scale(self.image,(43*scale, 47*scale))
 		self.rect = self.image.get_rect() # pega o retângulo que a imagem ocupa
 		self.rect.center = (self.px,self.py) # coloca o centro do retangulo da imagem nas posições de Px e Py e move ele pro endereço
-		self.area_batida = pg.draw.circle(tela,bluey_dark,(self.px,self.py),self.circle_size, 5)
+		self.area_batida = pg.draw.circle(tela,bluey_dark,(self.px,self.py),self.circle_size, 2)
 	def draw_area_bater(self):
-		pg.draw.circle(tela,bluey_dark,(self.px,self.py),self.circle_size, 5)
+		if self.aux_area_flag:
+			pg.draw.circle(tela,bluey_dark,(self.px,self.py),self.circle_size, 2)
 	def update_frame(self): # deve passar quando ele bater na bola
 		if self.animacao == True:
-			self.index_frame += 1
+			self.index_frame += 0.5
 			if self.index_frame >= len(self.imagens_player) :
 				self.index_frame = 0 
 				self.animacao = False
@@ -119,7 +129,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		
 		
 class Bola(): 
-	def __init__(self,pos,speed,raio):
+	def __init__(self,pos,speed,raio,player_starter):
 		self.px = pos[0]
 		self.py = pos[1]
 		self.vx = speed[0]
@@ -134,9 +144,9 @@ class Bola():
 	def newSpeed(self,speed,theta): # quero usar para mudar a velocidade quando bater num jogador
 		self.vx = -speed*math.cos(theta)#deletar depois e reescrever, ou não, sei lá
 		self.vy = -speed*math.sin(theta)
-	def newPos(self): # quero usar pra acompanhar o jogador antes do saque
-			self.px += self.vx #deletar depois e reescrever
-			self.py += self.vy
+	def newPos(self,Pos): # quero usar pra acompanhar o jogador antes do saque
+			self.px = Pos[0] + 10 # coloquei uma diferença em relação a entrada para poder sacar sem estar reto
+			self.py = Pos[1] - 10 # vou usar isso no sistema de saques
 	def colisao_bola(self):
 		if self.px <= raio_bola: # bateu na esquerda Vx é - -> +
 			self.px = raio_bola+1
@@ -206,7 +216,8 @@ def desenhar_quadra():
 	pg.draw.line(tela,red_line,(383+192-6, altura),(383+192-6,altura-174), esp_linha)#linha vertical inferior
 	
 	# linhas auxiliares
-	pg.draw.line(tela,branco,(largura-43,altura-quadra_altura),(largura-43,altura),4)
+	#linha auxiliar pra determinar a pontuação. se a bola passar dela tem que dar um ponto pro ultimo jogador que bateu nela 
+	pg.draw.line(tela,branco,(largura-60,altura-quadra_altura),(largura-60,altura),2)
 
 # para se fazer colisões de circulos eu vou ter que fazer uma função própria
 # já que o pygame só reconhece colisões com base em retângulos e todo desenho ele encaixa em um retângulo
@@ -248,8 +259,8 @@ def star_play():
 	bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
 #para as sprites funcionarem vc precisa adicionar elas
 	todas_as_sprites = pg.sprite.Group()
-	player1 = Player(sprite_bandit,600,450,Vel_max,K_w,K_s,K_a,K_d,largura,altura,altura-quadra_altura)# up down left rigth
-	player2 = Player(sprite_stripe,600,300,Vel_max,K_i,K_k,K_j,K_l,largura,altura,altura-quadra_altura)
+	player1 = Player(sprite_bandit,default_pos1,Vel_passo,K_w,K_s,K_a,K_d,largura,altura,altura-quadra_altura,hit_area_visible)# up down left rigth
+	player2 = Player(sprite_stripe,default_pos2,Vel_passo,K_UP,K_DOWN,K_LEFT,K_RIGHT,largura,altura,altura-quadra_altura,hit_area_visible)
 	todas_as_sprites.add(player1)
 	todas_as_sprites.add(player2)
 	
@@ -286,12 +297,12 @@ def star_play():
 				pg.quit()
 				exit()
 			if event.type == KEYDOWN:
-				if event.key == K_c:
+				if event.key == K_SPACE:
 					player1.bater_animacao() #só vai checar a colisão se o jogador apertar o botão, se não a bola passa por ele
 					if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size):
 						teta = get_angle((bola.px,bola.py),(player1.px,player1.py))
 						bola.newSpeed(Vel_Padrao,teta)
-				if event.key == K_n:
+				if event.key == K_RETURN:
 					player2.bater_animacao()
 					if circle_colision((bola.px,bola.py),bola.size,(player2.px,player2.py),player2.circle_size ):
 						teta = get_angle((bola.px,bola.py),(player2.px,player2.py))
