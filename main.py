@@ -44,6 +44,9 @@ cinza_bola=(68,70,81)
 bluey=(133,200,250)
 bluey_dark=(32,30,67)
 branco=(255,255,255)
+green_light=(199,227,82)
+green_cyan=(65,155,156)
+green_dark=(66,119,150)
 
 pg.init() # muitas funções de som, imagem e etc precisam dessa tela inicializada para serem feitas
 tela = pg.display.set_mode((largura,altura)) #abre tela com formatação de tamanho
@@ -60,6 +63,9 @@ som_bola = 0
 
 #Flags de configuração
 hit_area_visible = True
+
+
+
 
 #sprites e frames
 sprite_bandit = pg.image.load(os.path.join(dir_imgs,'sheet_bandit.png')).convert_alpha()
@@ -129,7 +135,7 @@ class Player(pg.sprite.Sprite): # classe de jogador
 		
 		
 class Bola(): 
-	def __init__(self,pos,speed,raio,player_starter):
+	def __init__(self,pos,speed,raio):
 		self.px = pos[0]
 		self.py = pos[1]
 		self.vx = speed[0]
@@ -145,8 +151,8 @@ class Bola():
 		self.vx = -speed*math.cos(theta)#deletar depois e reescrever, ou não, sei lá
 		self.vy = -speed*math.sin(theta)
 	def newPos(self,Pos): # quero usar pra acompanhar o jogador antes do saque
-			self.px = Pos[0] + 10 # coloquei uma diferença em relação a entrada para poder sacar sem estar reto
-			self.py = Pos[1] - 10 # vou usar isso no sistema de saques
+			self.px = Pos[0] - 30 # coloquei uma diferença em relação a entrada para poder sacar sem estar reto
+			self.py = Pos[1] + 60 # vou usar isso no sistema de saques
 	def colisao_bola(self):
 		if self.px <= raio_bola: # bateu na esquerda Vx é - -> +
 			self.px = raio_bola+1
@@ -248,37 +254,95 @@ def get_angle(ponto1,ponto2):
 
 def get_font(size): # função auxiliar para mudar tamanho dos textos A fonte está padronizada
     return pg.font.Font(os.path.join(dir_main,'Hello_Headline_Regular.ttf'),size)
+'''Loop de pausas'''
+
+'''def menu_pausa():
+	pg.display.set_caption('Bluey Squash Game - Paused') # atualiza o nome da janela
+	
+	while True:
+		#tela.fill(bluey) # pinta tela de azul
+		
+		pause_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
+		texto_pause=get_font(64).render("Paused", False,bluey_dark)
+		ret_pause = texto_pause.get_rect(center=(largura/2,70))
+		
+		bot_resume = Button(image = None, pos=(largura/2, 300),text_input="Resume", font=get_font(44), base_color=dark_beje, hovering_color=bluey_dark)
+		bot_back_menu = Button(image = None, pos=(largura/2, 350),text_input="Main Menu", font=get_font(44), base_color=dark_beje, hovering_color=bluey_dark)
+		bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit Game", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
+		
+		tela.blit(texto_conf,ret_conf) # até aqui ele printa o titulo do menu na tela
+		
+		for butao in [bot_change_player,bot_back,bot_quit]:
+			butao.changeColor(conf_mouse)
+			butao.update(tela)
+		
+		for event in pg.event.get():
+			if event.type == pg.QUIT:
+				pg.quit()
+				exit()
+			if event.type == pg.MOUSEBUTTONDOWN:
+				if bot_change_player.checkForInput(bot_resume):
+				
+					#star_play() mudar para função de trocar skin padrão
+					pass
+				if bot_back.checkForInput(bot_back_menu):
+					menu_principal()
+				if bot_quit.checkForInput(bot_quit):
+					pg.quit()
+					exit()
+		
+		pg.display.flip()'''
 
 
+'''Loop das partidas'''
 def star_play():
+	#Flags durante o jogo (talvez eu leve elas para a função de play
+	hit_primeiro = False # auxiliar de início de partida
+	hit_loss = False # avisa a perda da bola e marcação de pontos 
+	pause = False #autoexplicativo
+	
+	
+	
 	pg.display.set_caption('Bluey Squash Game - Playing') # atualiza o nome da janela
 	clk = pg.time.Clock()
 	
 	bola = Bola((383,altura-(592/2)),(-Vel_max,-Vel_max),raio_bola)
-	bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
-	bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
+
 #para as sprites funcionarem vc precisa adicionar elas
 	todas_as_sprites = pg.sprite.Group()
-	player1 = Player(sprite_bandit,default_pos1,Vel_passo,K_w,K_s,K_a,K_d,largura,altura,altura-quadra_altura,hit_area_visible)# up down left rigth
-	player2 = Player(sprite_stripe,default_pos2,Vel_passo,K_UP,K_DOWN,K_LEFT,K_RIGHT,largura,altura,altura-quadra_altura,hit_area_visible)
+	player1 = Player(sprite_p1,default_pos1,Vel_passo,K_w,K_s,K_a,K_d,largura,altura,altura-quadra_altura,hit_area_visible)# up down left rigth
+	player2 = Player(sprite_p2,default_pos2,Vel_passo,K_UP,K_DOWN,K_LEFT,K_RIGHT,largura,altura,altura-quadra_altura,hit_area_visible)
 	todas_as_sprites.add(player1)
 	todas_as_sprites.add(player2)
-	
+	# dados dos players
+	pontos_p1 = 0
+	pontos_p2 = 0
 	player_da_vez = player1 # variavel que marca player que inicia o jogo
+	hit_last_player = player2 # marca o ultimo player que bateu na bola
 	
 	while True:
 		tela.fill(bluey) # pinta tela de azul
-		clk.tick(clocke)
+		clk.tick(clocke/2)
 		desenhar_quadra()
-		bola.draw()
-		#bola1 = pg.draw.circle(tela,red_line,(200,200),50 )
-		#bola2 = pg.draw.circle(tela,bluey_dark,(100,100),30 )
-		'''if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size ):
-			print("bola está na área de acerto")
-		else:
-			print("não bateu ainda")'''
-		#print(bola.vx,bola.vy,bola.px,bola.py)
-		bola.update()
+		texto_play=get_font(40).render(f'Score \t Bandit:{pontos_p1} \t Stripe:{pontos_p2}', False,branco)
+		ret_play = texto_play.get_rect(center=(largura/2,25))
+		tela.blit(texto_play,ret_play)
+	
+		if hit_primeiro: # se a primero lance já tiver sido feito ele atualiza a bola
+			bola.update()
+		else: # se não ela va acompanhar o player da vez
+			bola.newPos((player_da_vez.px,player_da_vez.py))
+			
+		if bola.px >= (largura-60): # se a bola passar do limite da linha branca um ponto é acrescentado pro ultimo que bateu
+			if hit_last_player == player1: # reconhece o ultimo que bateu
+				pontos_p1 += 1 # dá um ponto pra ele
+				hit_primeiro = False # altera flag de novo início de partida
+				player_da_vez = player1 #atualiza o player que vai dar início a nova partida
+			elif hit_last_player == player2:
+				pontos_p2 += 1
+				hit_primeiro = False
+				player_da_vez = player2
+				
 		bola.colisao_bola()
 		#if bola.ball.pg.collide_circle(player1.area_batida):
 		#	print("bola está na área de acerto")
@@ -291,6 +355,7 @@ def star_play():
 		player1.update_frame()
 		player2.update_frame()
 		todas_as_sprites.update()
+		bola.draw()
 		
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
@@ -298,15 +363,69 @@ def star_play():
 				exit()
 			if event.type == KEYDOWN:
 				if event.key == K_SPACE:
+					if not hit_primeiro:
+						hit_primeiro = True
 					player1.bater_animacao() #só vai checar a colisão se o jogador apertar o botão, se não a bola passa por ele
 					if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size):
-						teta = get_angle((bola.px,bola.py),(player1.px,player1.py))
-						bola.newSpeed(Vel_Padrao,teta)
+						if hit_last_player == player2:
+							teta = get_angle((bola.px,bola.py),(player1.px,player1.py))
+							bola.newSpeed(Vel_Padrao,teta)
+							hit_last_player = player1
+						else:# se não ele dá um ponto pro outro e vai iniciar a partida nova
+							pontos_p2 += 1
+							player_da_vez = player2
+							hit_primeiro = False
 				if event.key == K_RETURN:
+					if not hit_primeiro:
+						hit_primeiro = True
 					player2.bater_animacao()
 					if circle_colision((bola.px,bola.py),bola.size,(player2.px,player2.py),player2.circle_size ):
-						teta = get_angle((bola.px,bola.py),(player2.px,player2.py))
-						bola.newSpeed(Vel_Padrao,teta)
+						if hit_last_player == player1: # se o ultimo a bater foi o outro player então funciona normal
+							teta = get_angle((bola.px,bola.py),(player2.px,player2.py))
+							bola.newSpeed(Vel_Padrao,teta)
+							hit_last_player = player2 # ataliza a info do ultimo qu bateu na bola
+						else:# se não ele dá um ponto pro outro e vai iniciar a partida nova
+							pontos_p1 += 1
+							player_da_vez = player1
+							hit_primeiro = False
+				if event.key == K_ESCAPE:
+					pause= True
+					
+			
+			while pause:
+				pg.display.set_caption('Bluey Squash Game - Paused') # atualiza o nome da janela
+				#tela.fill(bluey) # pinta tela de azul
+				
+				pause_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
+				texto_pause=get_font(64).render("Paused", False,green_dark)
+				ret_pause = texto_pause.get_rect(center=(largura/2,70))
+				
+				bot_resume = Button(image = None, pos=(largura/2, 300),text_input="Resume", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
+				bot_back_menu = Button(image = None, pos=(largura/2, 350),text_input="Main Menu", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
+				bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit Game", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
+				
+				tela.blit(texto_pause,ret_pause) # até aqui ele printa o titulo do menu na tela
+				
+				for butao in [bot_resume,bot_back_menu,bot_quit]:
+					butao.changeColor(pause_mouse)
+					butao.update(tela)
+				
+				for event in pg.event.get():
+					if event.type == pg.QUIT:
+						pg.quit()
+						exit()
+					if event.type == pg.MOUSEBUTTONDOWN:
+						if bot_resume.checkForInput(pause_mouse):
+							pause = False
+							#star_play() mudar para função de trocar skin padrão
+						if bot_back_menu.checkForInput(pause_mouse):
+							menu_principal()
+						if bot_quit.checkForInput(pause_mouse):
+							pg.quit()
+							exit()
+				
+				pg.display.flip()
+				
 		pg.display.flip()
 
 def menu_conf():
@@ -343,6 +462,9 @@ def menu_conf():
 					pg.quit()
 					exit()
 				
+		while pause:
+			print("jogo Pausado")
+		
 		pg.display.flip()
 
 def menu_principal():
@@ -383,8 +505,8 @@ def menu_principal():
 
 
 
-#menu_principal()
-star_play()
+menu_principal()
+#star_play()
 
 '''
 clk = pg.time.Clock()
