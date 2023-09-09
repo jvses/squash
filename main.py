@@ -22,7 +22,7 @@ raio_bola=9
 bolaX_start=largura/2
 bolaY_start=altura/2
 Vel_max=23
-Vel_Padrao = 20
+Vel_Padrao = 25
 Vel_passo = 10
 Vel_min=3
 vX = 5
@@ -57,14 +57,14 @@ default_back_song = pg.mixer.music.load(os.path.join(dir_sons,'Sportmanship.mp3'
 pg.mixer.music.play(-1)# coloca musica em loop
 pg.mixer.music.set_volume(0.5)
 sons_colisao = [pg.mixer.Sound(os.path.join(dir_sons,'som_bola1.wav')), pg.mixer.Sound(os.path.join(dir_sons,'som_bola2.wav')), pg.mixer.Sound(os.path.join(dir_sons,'som_bola3.wav'))]
-for i in range(3):
-	sons_colisao[i].set_volume(0.1)
+#for i in range(3):
+#	sons_colisao[i].set_volume(0.1)
 som_bola = 0
 
 #Flags de configuração
 hit_area_visible = True
 pause = False #autoexplicativo
-
+singlePlayer = False
 
 
 #sprites e frames
@@ -154,7 +154,12 @@ class Bola():
 			self.px = Pos[0] - 30 # coloquei uma diferença em relação a entrada para poder sacar sem estar reto
 			self.py = Pos[1] + 60 # vou usar isso no sistema de saques
 	def colisao_bola(self):
+		global som_bola,sons_colisao
 		if self.px <= raio_bola: # bateu na esquerda Vx é - -> +
+			if som_bola >= 3:
+				som_bola = 0
+			sons_colisao[som_bola].play()
+			som_bola = som_bola + 1
 			self.px = raio_bola+1
 			self.vx += v_atrito
 			self.vx = -self.vx
@@ -169,6 +174,10 @@ class Bola():
 				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 		if self.px >= (quadra_largura - raio_bola): # bateu na direita
+			if som_bola >= 3:
+				som_bola = 0
+			sons_colisao[som_bola].play()
+			som_bola = som_bola + 1
 			self.px = (quadra_largura - raio_bola)+1
 			self.vx -= v_atrito
 			self.vx = -self.vx
@@ -183,6 +192,10 @@ class Bola():
 				if abs(self.vy) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vy = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 		if self.py <= (altura-quadra_altura + raio_bola): #bateu no teto
+			if som_bola >= 3:
+				som_bola = 0
+			sons_colisao[som_bola].play()
+			som_bola = som_bola + 1
 			self.py = (altura-quadra_altura + raio_bola) +1
 			self.vy += v_atrito
 			self.vy = -self.vy
@@ -197,12 +210,15 @@ class Bola():
 				if abs(self.vx) < Vel_min:# se modulo menor que 2 ele mantêm em 2
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 		if self.py >= altura - raio_bola :# bateu no chão
+			if som_bola >= 3:
+				som_bola = 0
+			sons_colisao[som_bola].play()
+			som_bola = som_bola + 1
 			self.py = (altura - raio_bola) +1
 			self.vy -= v_atrito
 			self.vy = -self.vy
 			if abs(self.vy) < Vel_min :
 				self.vy = -Vel_min
-				
 			if self.vx < 0: # se o vx é negativa ele diminui o modulo em 2
 				self.vx += v_atrito
 				if abs(self.vx) < Vel_min: # se o modulo for menor que 2 ele mantem e -2
@@ -213,6 +229,7 @@ class Bola():
 					self.vx = Vel_min  # após colidir a bola perde velocidade em ambas dimensões e então é invertida de acordo com o eixo que bateu
 #desenhar a quadra
 def desenhar_quadra():
+	global hit_area_visible
 	pg.draw.rect(tela,mid_beje,(0,(altura-quadra_altura),quadra_largura,quadra_altura)) #quadra maior (onde, (cor em RGB), (addrX, addrY, sizeX,sizeY))
 	pg.draw.line(tela,red_line,(383, altura-592),(383,altura), esp_linha)#(onde, (cor em RGB), addrXYinicio, addrXYfinal, espessura) 
 	pg.draw.line(tela,red_line,(383, altura-(592/2)),(largura,altura-(592/2)), esp_linha) # linha do meio
@@ -222,8 +239,9 @@ def desenhar_quadra():
 	pg.draw.line(tela,red_line,(383+192-6, altura),(383+192-6,altura-174), esp_linha)#linha vertical inferior
 	
 	# linhas auxiliares
-	#linha auxiliar pra determinar a pontuação. se a bola passar dela tem que dar um ponto pro ultimo jogador que bateu nela 
-	pg.draw.line(tela,branco,(largura-60,altura-quadra_altura),(largura-60,altura),2)
+	#linha auxiliar pra determinar a pontuação. se a bola passar dela tem que dar um ponto pro ultimo jogador que bateu nela
+	if hit_area_visible:
+		pg.draw.line(tela,branco,(largura-60,altura-quadra_altura),(largura-60,altura),2)
 
 # para se fazer colisões de circulos eu vou ter que fazer uma função própria
 # já que o pygame só reconhece colisões com base em retângulos e todo desenho ele encaixa em um retângulo
@@ -294,15 +312,12 @@ def menu_pausa():
 
 '''Loop das partidas'''
 def star_play():
-	global pause
+	global pause,som_bola,sons_colisao
 
 	#Flags durante o jogo (talvez eu leve elas para a função de play
 	hit_primeiro = False # auxiliar de início de partida
 	hit_loss = False # avisa a perda da bola e marcação de pontos 
 
-	
-	
-	
 	pg.display.set_caption('Bluey Squash Game - Playing') # atualiza o nome da janela
 	clk = pg.time.Clock()
 	
@@ -322,9 +337,9 @@ def star_play():
 	
 	while True:
 		tela.fill(bluey) # pinta tela de azul
-		clk.tick(clocke/2)
+		clk.tick(clocke)
 		desenhar_quadra()
-		texto_play=get_font(40).render(f'Score \t Bandit:{pontos_p1} \t Stripe:{pontos_p2}', False,branco)
+		texto_play=get_font(40).render(f'Score p1:{pontos_p1}  Player 2:{pontos_p2}', False,branco)
 		ret_play = texto_play.get_rect(center=(largura/2,25))
 		tela.blit(texto_play,ret_play)
 	
@@ -348,7 +363,6 @@ def star_play():
 		bola.colisao_bola()
 		#if bola.ball.pg.collide_circle(player1.area_batida):
 		#	print("bola está na área de acerto")
-		
 		todas_as_sprites.draw(tela) #desenha todas as sprites armazenadas na Tela
 		
 		player1.mov()
@@ -369,6 +383,10 @@ def star_play():
 						hit_primeiro = True
 					player1.bater_animacao() #só vai checar a colisão se o jogador apertar o botão, se não a bola passa por ele
 					if circle_colision((bola.px,bola.py),bola.size,(player1.px,player1.py),player1.circle_size):
+						if som_bola >= 3:
+							som_bola = 0
+						sons_colisao[som_bola].play()
+						som_bola = som_bola + 1
 						if hit_last_player == player2:
 							teta = get_angle((bola.px,bola.py),(player1.px,player1.py))
 							bola.newSpeed(Vel_Padrao,teta)
@@ -382,6 +400,10 @@ def star_play():
 						hit_primeiro = True
 					player2.bater_animacao()
 					if circle_colision((bola.px,bola.py),bola.size,(player2.px,player2.py),player2.circle_size ):
+						if som_bola >= 3:
+							som_bola = 0
+						sons_colisao[som_bola].play()
+						som_bola = som_bola + 1
 						if hit_last_player == player1: # se o ultimo a bater foi o outro player então funciona normal
 							teta = get_angle((bola.px,bola.py),(player2.px,player2.py))
 							bola.newSpeed(Vel_Padrao,teta)
@@ -400,7 +422,24 @@ def star_play():
 		pg.display.flip()
 
 def menu_conf():
+	global sprite_p1,sprite_p2,sprite_bandit,sprite_stripe
 	pg.display.set_caption('Bluey Squash Game - Configurations') # atualiza o nome da janela
+	 
+	#mensagens padrões determinando skins
+	msg_skin_bandit="Bandit"
+	msg_skin_stripe="Stripe"
+	
+	#checagem de qual skin está no respectivo player
+	if sprite_p1 == sprite_bandit:
+		msg_skinp1 = msg_skin_bandit
+	elif sprite_p1 == sprite_stripe:
+		msg_skinp1 = msg_skin_stripe
+	
+	if sprite_p2 == sprite_bandit:
+		msg_skinp2 = msg_skin_bandit
+	elif sprite_p2 == sprite_stripe:
+		msg_skinp2 = msg_skin_stripe
+	
 	
 	while True:
 		tela.fill(bluey) # pinta tela de azul
@@ -408,14 +447,24 @@ def menu_conf():
 		conf_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
 		texto_conf=get_font(64).render("Configurations", False,branco)
 		ret_conf = texto_conf.get_rect(center=(largura/2,70))
+		#Texto de exibição das configurações das Skis
+		texto_conf2=get_font(40).render("Player 1 Skin", False,branco)
+		ret_conf2 = texto_conf2.get_rect(center=(largura/4,250))
+		tela.blit(texto_conf2,ret_conf2)
+		texto_conf3=get_font(40).render("Player 2 Skin", False,branco)
+		ret_conf3 = texto_conf3.get_rect(center=(largura*3/4,250))
+		tela.blit(texto_conf3,ret_conf3)
 		
-		bot_change_player = Button(image = None, pos=(largura/2, 300),text_input="Change Skin", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
-		bot_back = Button(image = None, pos=(largura/2, 350),text_input="Back", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
-		bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
+		#botões de mudanças de skins
+		bot_change_player1_skin = Button(image = None, pos=(largura/4, 300),text_input=msg_skinp1, font=get_font(44), base_color=branco, hovering_color=bluey_dark)
+		bot_change_player2_skin = Button(image = None, pos=(largura*3/4, 300),text_input=msg_skinp2, font=get_font(44), base_color=branco, hovering_color=bluey_dark)
+		
+		bot_back = Button(image = None, pos=(largura/2, 400),text_input="Back", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
+		bot_quit = Button(image = None, pos=(largura/2, 500),text_input="Quit", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
 		
 		tela.blit(texto_conf,ret_conf) # até aqui ele printa o titulo do menu na tela
 		
-		for butao in [bot_change_player,bot_back,bot_quit]:
+		for butao in [bot_change_player1_skin,bot_change_player2_skin,bot_back,bot_quit]:
 			butao.changeColor(conf_mouse)
 			butao.update(tela)
 		
@@ -424,16 +473,25 @@ def menu_conf():
 				pg.quit()
 				exit()
 			if event.type == pg.MOUSEBUTTONDOWN:
-				if bot_change_player.checkForInput(conf_mouse):
-					#star_play() mudar para função de trocar skin padrão
-					pass
+				if bot_change_player1_skin.checkForInput(conf_mouse):
+					if sprite_p1 == sprite_bandit: # se estiver com skin do Bandit passa a ter a do Stripe
+						msg_skinp1 = msg_skin_stripe
+						sprite_p1 = sprite_stripe
+					elif sprite_p1 == sprite_stripe: #se estiver com skin do Stripe passa a ter a do Bandit
+						msg_skinp1 = msg_skin_bandit
+						sprite_p1 = sprite_bandit
+				if bot_change_player2_skin.checkForInput(conf_mouse):
+					if sprite_p2 == sprite_bandit: # se estiver com skin do Bandit passa a ter a do Stripe
+						msg_skinp2 = msg_skin_stripe
+						sprite_p2 = sprite_stripe
+					elif sprite_p2 == sprite_stripe: #se estiver com skin do Stripe passa a ter a do Bandit
+						msg_skinp2 = msg_skin_bandit
+						sprite_p2 = sprite_bandit
 				if bot_back.checkForInput(conf_mouse):
 					menu_principal()
 				if bot_quit.checkForInput(conf_mouse):
 					pg.quit()
 					exit()
-				
-		
 		pg.display.flip()
 
 def menu_principal():
@@ -448,8 +506,8 @@ def menu_principal():
 		ret_menu = texto_menu.get_rect(center=(largura/2,70))
 		
 		bot_play = Button(image = None, pos=(largura/2, 300),text_input="Play", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
-		bot_conf = Button(image = None, pos=(largura/2, 350),text_input="Config", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
-		bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
+		bot_conf = Button(image = None, pos=(largura/2, 400),text_input="Config", font=get_font(44), base_color=branco, hovering_color=bluey_dark)
+		bot_quit = Button(image = None, pos=(largura/2, 500),text_input="Quit", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
 		
 		tela.blit(texto_menu,ret_menu) # até aqui ele printa o titulo do menu na tela
 		
