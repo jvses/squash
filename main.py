@@ -338,10 +338,12 @@ def star_play():
 				pontos_p1 += 1 # dá um ponto pra ele
 				hit_primeiro = False # altera flag de novo início de partida
 				player_da_vez = player1 #atualiza o player que vai dar início a nova partida
+				hit_last_player = player2	
 			elif hit_last_player == player2:
 				pontos_p2 += 1
 				hit_primeiro = False
 				player_da_vez = player2
+				hit_last_player = player1
 				
 		bola.colisao_bola()
 		#if bola.ball.pg.collide_circle(player1.area_batida):
