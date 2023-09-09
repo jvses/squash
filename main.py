@@ -57,13 +57,13 @@ default_back_song = pg.mixer.music.load(os.path.join(dir_sons,'Sportmanship.mp3'
 pg.mixer.music.play(-1)# coloca musica em loop
 pg.mixer.music.set_volume(0.5)
 sons_colisao = [pg.mixer.Sound(os.path.join(dir_sons,'som_bola1.wav')), pg.mixer.Sound(os.path.join(dir_sons,'som_bola2.wav')), pg.mixer.Sound(os.path.join(dir_sons,'som_bola3.wav'))]
-#for i in range(3):
-#	sons_colisao[i].set_volume(0.1)
+for i in range(3):
+	sons_colisao[i].set_volume(0.1)
 som_bola = 0
 
 #Flags de configuração
 hit_area_visible = True
-
+pause = False #autoexplicativo
 
 
 
@@ -255,51 +255,51 @@ def get_angle(ponto1,ponto2):
 def get_font(size): # função auxiliar para mudar tamanho dos textos A fonte está padronizada
     return pg.font.Font(os.path.join(dir_main,'Hello_Headline_Regular.ttf'),size)
 '''Loop de pausas'''
-
-'''def menu_pausa():
+def menu_pausa():
+	global pause
 	pg.display.set_caption('Bluey Squash Game - Paused') # atualiza o nome da janela
+	#tela.fill(bluey) # pinta tela de azul
 	
-	while True:
-		#tela.fill(bluey) # pinta tela de azul
+	pause_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
+	texto_pause=get_font(64).render("Paused", False,green_dark)
+	ret_pause = texto_pause.get_rect(center=(largura/2,70))
 		
-		pause_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
-		texto_pause=get_font(64).render("Paused", False,bluey_dark)
-		ret_pause = texto_pause.get_rect(center=(largura/2,70))
+	bot_resume = Button(image = None, pos=(largura/2, 300),text_input="Resume", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
+	bot_back_menu = Button(image = None, pos=(largura/2, 350),text_input="Main Menu", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
+	bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit Game", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
 		
-		bot_resume = Button(image = None, pos=(largura/2, 300),text_input="Resume", font=get_font(44), base_color=dark_beje, hovering_color=bluey_dark)
-		bot_back_menu = Button(image = None, pos=(largura/2, 350),text_input="Main Menu", font=get_font(44), base_color=dark_beje, hovering_color=bluey_dark)
-		bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit Game", font=get_font(44), base_color=red_line, hovering_color=bluey_dark)
+	tela.blit(texto_pause,ret_pause) # até aqui ele printa o titulo do menu na tela
+				
+	for butao in [bot_resume,bot_back_menu,bot_quit]:
+		butao.changeColor(pause_mouse)
+		butao.update(tela)
 		
-		tela.blit(texto_conf,ret_conf) # até aqui ele printa o titulo do menu na tela
-		
-		for butao in [bot_change_player,bot_back,bot_quit]:
-			butao.changeColor(conf_mouse)
-			butao.update(tela)
-		
-		for event in pg.event.get():
-			if event.type == pg.QUIT:
+	for event in pg.event.get():
+		if event.type == pg.QUIT:
+			pg.quit()
+			exit()
+		if event.type == pg.MOUSEBUTTONDOWN:
+			if bot_resume.checkForInput(pause_mouse):
+				pause = False
+				#star_play() mudar para função de trocar skin padrão
+			if bot_back_menu.checkForInput(pause_mouse):
+				pause = False
+				menu_principal()
+			if bot_quit.checkForInput(pause_mouse):
 				pg.quit()
 				exit()
-			if event.type == pg.MOUSEBUTTONDOWN:
-				if bot_change_player.checkForInput(bot_resume):
 				
-					#star_play() mudar para função de trocar skin padrão
-					pass
-				if bot_back.checkForInput(bot_back_menu):
-					menu_principal()
-				if bot_quit.checkForInput(bot_quit):
-					pg.quit()
-					exit()
-		
-		pg.display.flip()'''
+	pg.display.flip()
 
 
 '''Loop das partidas'''
 def star_play():
+	global pause
+
 	#Flags durante o jogo (talvez eu leve elas para a função de play
 	hit_primeiro = False # auxiliar de início de partida
 	hit_loss = False # avisa a perda da bola e marcação de pontos 
-	pause = False #autoexplicativo
+
 	
 	
 	
@@ -395,38 +395,7 @@ def star_play():
 					
 			
 			while pause:
-				pg.display.set_caption('Bluey Squash Game - Paused') # atualiza o nome da janela
-				#tela.fill(bluey) # pinta tela de azul
-				
-				pause_mouse = pg.mouse.get_pos() # pega a posiçãod o mouse na tela de menu
-				texto_pause=get_font(64).render("Paused", False,green_dark)
-				ret_pause = texto_pause.get_rect(center=(largura/2,70))
-				
-				bot_resume = Button(image = None, pos=(largura/2, 300),text_input="Resume", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
-				bot_back_menu = Button(image = None, pos=(largura/2, 350),text_input="Main Menu", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
-				bot_quit = Button(image = None, pos=(largura/2, 400),text_input="Quit Game", font=get_font(44), base_color=green_cyan, hovering_color=green_dark)
-				
-				tela.blit(texto_pause,ret_pause) # até aqui ele printa o titulo do menu na tela
-				
-				for butao in [bot_resume,bot_back_menu,bot_quit]:
-					butao.changeColor(pause_mouse)
-					butao.update(tela)
-				
-				for event in pg.event.get():
-					if event.type == pg.QUIT:
-						pg.quit()
-						exit()
-					if event.type == pg.MOUSEBUTTONDOWN:
-						if bot_resume.checkForInput(pause_mouse):
-							pause = False
-							#star_play() mudar para função de trocar skin padrão
-						if bot_back_menu.checkForInput(pause_mouse):
-							menu_principal()
-						if bot_quit.checkForInput(pause_mouse):
-							pg.quit()
-							exit()
-				
-				pg.display.flip()
+				menu_pausa()
 				
 		pg.display.flip()
 
@@ -464,8 +433,6 @@ def menu_conf():
 					pg.quit()
 					exit()
 				
-		while pause:
-			print("jogo Pausado")
 		
 		pg.display.flip()
 
